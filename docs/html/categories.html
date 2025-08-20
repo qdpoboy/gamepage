@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡带仓库 - 像素风个人站</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* 基础样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a1a;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        /* 像素化背景网格 */
+        .pixel-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                linear-gradient(rgba(26, 26, 46, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26, 26, 46, 0.5) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0;
+        }
+
+        /* 游戏机外壳 */
+        .game-console {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            max-width: 1200px;
+            height: 80vh;
+            background: #2a2a3e;
+            border-radius: 20px;
+            padding: 40px;
+            box-sizing: border-box;
+            box-shadow: 
+                inset 0 0 50px rgba(0, 0, 0, 0.5),
+                0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 游戏机顶部装饰 */
+        .console-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+
+        .power-light {
+            width: 12px;
+            height: 12px;
+            background: #e94560;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #e94560;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .console-brand {
+            font-size: 14px;
+            color: #e94560;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        /* 游戏选择界面容器 */
+        .game-select {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 40px;
+            background: #1a1a2e;
+            border: 4px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+
+
+        /* 游戏卡带列表 */
+        .cartridge-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow: hidden;
+            padding: 20px;
+            background: #232338;
+            border-radius: 8px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+
+
+        /* 游戏卡带 */
+        .cartridge {
+            height: 100px;
+            background: linear-gradient(135deg, #2a2a3e, #1a1a2e);
+            border: 2px solid #e94560;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 
+                2px 2px 0 #000,
+                inset 0 0 10px rgba(233, 69, 96, 0.2);
+        }
+
+        .cartridge::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 4px;
+            background: rgba(233, 69, 96, 0.3);
+            box-shadow: 0 8px 0 rgba(233, 69, 96, 0.3);
+        }
+
+        .cartridge:hover {
+            transform: translateX(5px);
+            box-shadow: 
+                4px 4px 0 #000,
+                inset 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        .cartridge.active {
+            background: linear-gradient(135deg, #4a4a6a, #2a2a4a);
+            transform: translateX(5px);
+            box-shadow: 
+                4px 4px 0 #000,
+                inset 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .cartridge-icon {
+            width: 40px;
+            height: 40px;
+            background: currentColor;
+            border-radius: 4px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .cartridge-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .cartridge-info {
+            flex: 1;
+        }
+
+        .cartridge-name {
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #e94560;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .cartridge.active .cartridge-name,
+        .cartridge.active .cartridge-count {
+            color: #fff;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .cartridge-count {
+            font-size: 10px;
+            color: #a4a4a4;
+        }
+
+        /* 游戏预览界面 */
+        .preview-screen {
+            background: #0a0a1a;
+            border: 4px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 0 50px rgba(233, 69, 96, 0.1),
+                0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(
+                    rgba(233, 69, 96, 0.03) 50%,
+                    rgba(0, 0, 0, 0.1) 50%
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255, 0, 0, 0.06),
+                    rgba(0, 255, 0, 0.02),
+                    rgba(0, 0, 255, 0.06)
+                );
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            animation: scanline 10s linear infinite;
+        }
+
+        @keyframes scanline {
+            from { background-position: 0 0; }
+            to { background-position: 0 100%; }
+        }
+
+        /* 文章列表 */
+        .article-list {
+            height: 100%;
+            overflow: hidden;
+            padding-right: 20px;
+        }
+
+
+
+        /* 文章卡片 */
+        .article-card {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(26, 26, 46, 0.6);
+            border: 2px solid #333;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        .article-card:hover {
+            border-color: #e94560;
+            transform: translateX(5px);
+            box-shadow: 4px 4px 0 #000;
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .article-title {
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #f1f1f1;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .article-info {
+            font-size: 8px;
+            color: #a4a4a4;
+            display: flex;
+            justify-content: space-between;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* 游戏机控制按钮 */
+        .console-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 0 20px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-button {
+            width: 30px;
+            height: 30px;
+            background: #333;
+            border: 2px solid #222;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .control-button:hover {
+            background: #444;
+        }
+
+        .control-button:active {
+            transform: scale(0.95);
+        }
+
+        .control-button.red { background: #e94560; }
+        .control-button.blue { background: #2196f3; }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            height: 32px;
+            background: #1a1a2e;
+            border: 2px solid #e94560;
+            border-radius: 4px;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        .back-button:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .back-button .icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 像素风鼠标 */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            position: fixed;
+            pointer-events: none;
+            mix-blend-mode: difference;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="pixel-grid"></div>
+
+    <a href="index.html" class="back-button">
+        <svg class="icon" viewBox="0 0 16 16">
+            <path fill="currentColor" d="M8 1L3 8l5 7V11h5V5H8V1z"/>
+        </svg>
+        BACK
+    </a>
+
+    <div class="game-console">
+        <div class="console-top">
+            <div class="power-light"></div>
+            <div class="console-brand">PIXEL STATION</div>
+            <div class="power-light"></div>
+        </div>
+
+        <div class="game-select">
+            <!-- 游戏卡带列表 -->
+            <div class="cartridge-list">
+                <div class="cartridge active">
+                    <div class="cartridge-icon" style="color: #e94560;"></div>
+                    <div class="cartridge-info">
+                        <div class="cartridge-name">前端开发</div>
+                        <div class="cartridge-count">12篇文章</div>
+                    </div>
+                </div>
+                <div class="cartridge">
+                    <div class="cartridge-icon" style="color: #4caf50;"></div>
+                    <div class="cartridge-info">
+                        <div class="cartridge-name">后端技术</div>
+                        <div class="cartridge-count">8篇文章</div>
+                    </div>
+                </div>
+                <div class="cartridge">
+                    <div class="cartridge-icon" style="color: #2196f3;"></div>
+                    <div class="cartridge-info">
+                        <div class="cartridge-name">设计模式</div>
+                        <div class="cartridge-count">6篇文章</div>
+                    </div>
+                </div>
+                <div class="cartridge">
+                    <div class="cartridge-icon" style="color: #ff9800;"></div>
+                    <div class="cartridge-info">
+                        <div class="cartridge-name">算法研究</div>
+                        <div class="cartridge-count">15篇文章</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏预览界面 -->
+            <div class="preview-screen">
+                <div class="article-list">
+                    <div class="article-card">
+                        <div class="article-title">Vue3组件库设计实践</div>
+                        <div class="article-info">
+                            <span>2天前更新</span>
+                            <span>阅读: 128</span>
+                        </div>
+                    </div>
+                    <div class="article-card">
+                        <div class="article-title">TypeScript高级类型指南</div>
+                        <div class="article-info">
+                            <span>4天前更新</span>
+                            <span>阅读: 256</span>
+                        </div>
+                    </div>
+                    <div class="article-card">
+                        <div class="article-title">前端性能优化实战</div>
+                        <div class="article-info">
+                            <span>1周前更新</span>
+                            <span>阅读: 512</span>
+                        </div>
+                    </div>
+                    <div class="article-card">
+                        <div class="article-title">现代CSS布局技巧</div>
+                        <div class="article-info">
+                            <span>2周前更新</span>
+                            <span>阅读: 384</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="console-controls">
+            <div class="control-group">
+                <div class="control-button red"></div>
+                <div class="control-button blue"></div>
+            </div>
+            <div class="control-group">
+                <div class="control-button"></div>
+                <div class="control-button"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cursor"></div>
+
+    <script>
+        // 像素风鼠标跟随效果
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.querySelector('.cursor');
+            const target = e.target;
+            
+            // 检查鼠标是否在大模块或交互元素上
+            if (target.closest('.game-console') || 
+                target.closest('.back-button')) {
+                cursor.style.display = 'none';
+            } else {
+                cursor.style.display = 'block';
+                cursor.style.left = Math.floor(e.clientX / 20) * 20 + 'px';
+                cursor.style.top = Math.floor(e.clientY / 20) * 20 + 'px';
+            }
+        });
+
+        // 游戏卡带点击事件
+        document.querySelectorAll('.cartridge').forEach(item => {
+            item.addEventListener('click', () => {
+                if (item.classList.contains('active')) return;
+
+                // 移除其他项的active类
+                document.querySelectorAll('.cartridge').forEach(i => {
+                    i.classList.remove('active');
+                });
+
+                // 添加当前项的active类
+                item.classList.add('active');
+
+                // 切换文章列表
+                const articleList = document.querySelector('.article-list');
+                articleList.style.opacity = '0';
+                setTimeout(() => {
+                    articleList.style.opacity = '1';
+                    articleList.style.transition = 'opacity 0.3s ease';
+                }, 300);
+            });
+        });
+
+        // 控制按钮点击效果
+        document.querySelectorAll('.control-button').forEach(button => {
+            button.addEventListener('click', () => {
+                button.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    button.style.transform = 'scale(1)';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>

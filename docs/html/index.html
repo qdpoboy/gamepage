@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>像素风个人站 - 原型图</title>
+    <style>
+        /* 基础样式 */
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a1a;
+            color: #f1f1f1;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .prototype-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100%;
+            background: #1a1a2e;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .prototype-nav h2 {
+            color: #e94560;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .prototype-nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .prototype-nav li {
+            margin-bottom: 10px;
+        }
+
+        .prototype-nav a {
+            color: #f1f1f1;
+            text-decoration: none;
+            font-size: 14px;
+            display: block;
+            padding: 8px;
+            border: 2px solid #2a2a3e;
+            transition: all 0.3s;
+        }
+
+        .prototype-nav a:hover {
+            background: #2a2a3e;
+            border-color: #e94560;
+        }
+
+        .prototype-content {
+            margin-left: 220px;
+            padding: 20px;
+        }
+
+        .prototype-header {
+            margin-bottom: 30px;
+        }
+
+        .prototype-header h1 {
+            color: #e94560;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .prototype-header p {
+            color: #a4a4a4;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .prototype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .prototype-card {
+            background: #1a1a2e;
+            border: 2px solid #2a2a3e;
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        .prototype-card h3 {
+            color: #e94560;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .prototype-card p {
+            color: #a4a4a4;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .prototype-card img {
+            width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+            border: 2px solid #2a2a3e;
+        }
+
+        .pixel-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #e94560;
+            color: #f1f1f1;
+            text-decoration: none;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pixel-button:hover {
+            background: #ff6b81;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <nav class="prototype-nav">
+        <h2>原型导航</h2>
+        <ul>
+            <li><a href="index.html">原型说明</a></li>
+            <li><a href="home.html">首页设计</a></li>
+            <li><a href="categories.html">分类页面</a></li>
+            <li><a href="skills.html">技能树</a></li>
+            <li><a href="insights.html">心得分享</a></li>
+            <li><a href="about.html">个人介绍</a></li>
+        </ul>
+    </nav>
+
+    <main class="prototype-content">
+        <header class="prototype-header">
+            <h1>像素风格个人站原型图</h1>
+            <p>这是一套基于像素风格设计的个人站原型图。每个页面都采用了复古游戏风格的设计元素，并融入了现代的交互体验。</p>
+        </header>
+
+        <div class="prototype-grid">
+            <div class="prototype-card">
+                <h3>设计理念</h3>
+                <p>采用8-bit/16-bit像素画风，结合现代网页设计理念，打造独特的游戏化浏览体验。暗色主题为主，搭配鲜明的强调色，突出内容的同时保持视觉舒适度。</p>
+            </div>
+
+            <div class="prototype-card">
+                <h3>交互说明</h3>
+                <p>所有交互都模拟复古游戏的操作方式，包括选择菜单、对话框、收集要素等。加入了声音反馈和像素动画，增强沉浸感。</p>
+            </div>
+
+            <div class="prototype-card">
+                <h3>页面说明</h3>
+                <p>原型包含5个主要页面：首页（世界地图）、分类（卡带仓库）、技能树（能力神殿）、心得（智慧书馆）和个人介绍（勇者之路）。每个页面都有其独特的游戏化设计。</p>
+            </div>
+
+            <div class="prototype-card">
+                <h3>使用说明</h3>
+                <p>点击左侧导航可以查看不同页面的原型设计。每个原型页面都包含了详细的交互说明和设计注释。</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

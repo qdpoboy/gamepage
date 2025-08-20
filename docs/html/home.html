@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页设计 - 像素风个人站原型图</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* 基础样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a1a;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        .pixel-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                linear-gradient(rgba(26, 26, 46, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26, 26, 46, 0.5) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0;
+            /* 暂时移除动画以检查对齐问题 */
+        }
+
+        @keyframes gridMove {
+            from { transform: translate(0, 0); }
+            to { transform: translate(-20px, -20px); }
+        }
+
+        .game-scene {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* 像素化标题 - 改为左上角 */
+        .pixel-title {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            font-size: 26px;
+            color: #e94560;
+            text-shadow: 
+                4px 4px 0 #1a1a2e,
+                8px 8px 0 #0a0a1a;
+            transform: rotate(-5deg);
+            animation: titlePulse 2s ease-in-out infinite;
+            pointer-events: auto;
+            z-index: 100;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: rotate(-5deg) scale(1); }
+            50% { transform: rotate(-5deg) scale(1.05); }
+        }
+
+        /* 不规则布局的菜单 */
+        .menu-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 菜单项基础样式 */
+        .menu-item {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: none; /* 防止鼠标像素化效果影响菜单 */
+        }
+
+        .menu-item > * {
+            pointer-events: auto; /* 恢复子元素的鼠标事件 */
+        }
+
+        .menu-item:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .menu-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: all 0.3s ease;
+        }
+
+        /* 技能神殿 - 右上 */
+        .menu-skills {
+            top: 15%;
+            right: 15%;
+            transform: rotate(15deg);
+        }
+        
+        .menu-skills::after {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/svg" viewBox="0 0 32 32"><path fill="%23e94560" d="M16 2l4 4h6v6l4 4-4 4v6h-6l-4 4-4-4H6v-6l-4-4 4-4V6h6z"/></svg>');
+        }
+
+        /* 卡带仓库 - 左中 */
+        .menu-blog {
+            top: 40%;
+            left: 10%;
+            transform: rotate(-10deg);
+        }
+        
+        .menu-blog::after {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/svg" viewBox="0 0 32 32"><path fill="%234caf50" d="M6 4v24h20V4H6zm2 2h16v20H8V6zm4 4h8v2h-8v-2zm0 4h8v2h-8v-2zm0 4h8v2h-8v-2z"/></svg>');
+        }
+
+        /* 智慧书馆 - 中下 */
+        .menu-library {
+            bottom: 20%;
+            left: 40%;
+            transform: rotate(5deg);
+        }
+        
+        .menu-library::after {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/svg" viewBox="0 0 32 32"><path fill="%232196f3" d="M4 8v16h24V8H4zm2 2h20v12H6V10zm4 2v8h4v-8h-4zm6 0v8h4v-8h-4z"/></svg>');
+        }
+
+        /* 勇者之路 - 右下 */
+        .menu-about {
+            bottom: 15%;
+            right: 20%;
+            transform: rotate(-8deg);
+        }
+        
+        .menu-about::after {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/svg" viewBox="0 0 32 32"><path fill="%23ff9800" d="M16 4l4 8 8 1-6 6 2 8-8-4-8 4 2-8-6-6 8-1z"/></svg>');
+        }
+
+        /* 菜单文字 */
+        .menu-text {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            white-space: nowrap;
+            color: #fff;
+            text-shadow: 2px 2px 0 #0a0a1a;
+            background: rgba(26, 26, 46, 0.8);
+            padding: 8px;
+            border: 2px solid currentColor;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .menu-item:hover .menu-text {
+            opacity: 1;
+        }
+
+        /* 浮动装饰元素 */
+        #floating-pixels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-pixel {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            pointer-events: none;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        /* 像素形状 */
+        .pixel-shape-1 {
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        }
+
+        .pixel-shape-2 {
+            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+        }
+
+        .pixel-shape-3 {
+            clip-path: circle(50% at 50% 50%);
+        }
+
+        .pixel-shape-4 {
+            clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+        }
+
+        .pixel-shape-5 {
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+            transform: rotate(45deg);
+        }
+
+        @keyframes floatAnimation {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            25% {
+                transform: translate(10px, -10px) rotate(90deg) scale(1.1);
+            }
+            50% {
+                transform: translate(0, -20px) rotate(180deg) scale(1);
+            }
+            75% {
+                transform: translate(-10px, -10px) rotate(270deg) scale(0.9);
+            }
+        }
+
+        /* 状态栏 - 改为右上角 */
+        .status-bar {
+            position: fixed;
+            top: 32px;
+            right: 32px;
+            background: rgba(26, 26, 46, 0.8);
+            border: 4px solid #e94560;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            font-size: 12px;
+            transform: rotate(5deg);
+        }
+
+        .status-item {
+            display: flex;
+            /* align-items: center; */
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .status-icon {
+            width: 12px;
+            height: 12px;
+            background: currentColor;
+            animation: statusPulse 2s infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* 为每个状态项添加不同颜色 */
+        .status-exp { color: #e94560; }
+        .status-achievement { color: #4caf50; }
+        .status-collection { color: #2196f3; }
+
+        /* 游戏控制菜单 */
+        .game-controls {
+            position: fixed;
+            right: 32px;
+            bottom: 32px;
+            display: flex;
+            gap: 16px;
+            z-index: 1000;
+            padding: 8px;
+        }
+
+        .game-button {
+            height: 32px;
+            background: #1a1a2e;
+            border: 2px solid currentColor;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            white-space: nowrap;
+        }
+
+        .game-button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.2);
+        }
+
+        .game-button .icon {
+            width: 16px;
+            height: 16px;
+            image-rendering: pixelated;
+        }
+
+        .game-button.save { 
+            color: #4caf50; 
+        }
+
+        .game-button.reset { 
+            color: #e94560; 
+        }
+
+        /* 像素风鼠标 */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            position: fixed;
+            pointer-events: none;
+            mix-blend-mode: difference;
+            z-index: 9999;
+        }
+
+        /* 打字机效果容器 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .welcome-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            white-space: pre-line;
+            text-align: center;
+            line-height: 2;
+            pointer-events: none;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+            animation-delay: 0.5s;
+            z-index: 100;
+            background: rgba(26, 26, 46, 0.8);
+            padding: 20px;
+            border: 2px solid #e94560;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="pixel-grid"></div>
+    <div class="game-scene">
+        <div class="welcome-text"></div>
+        <h1 class="pixel-title fade-in">PIXEL WORLD</h1>
+        
+        <div class="menu-container">
+            <div class="menu-item menu-skills">
+                <div class="menu-text">能力神殿</div>
+            </div>
+            <div class="menu-item menu-blog">
+                <div class="menu-text">卡带仓库</div>
+            </div>
+            <div class="menu-item menu-library">
+                <div class="menu-text">智慧书馆</div>
+            </div>
+            <div class="menu-item menu-about">
+                <div class="menu-text">勇者之路</div>
+            </div>
+        </div>
+
+        <div id="floating-pixels"></div>
+
+        <div class="status-bar">
+            <div class="status-item status-level">
+                <div class="status-icon"></div>
+                <span>LV.0 初入江湖</span>
+            </div>
+            <div class="status-item status-exp">
+                <div class="status-icon"></div>
+                <span>EXP 0/999</span>
+            </div>
+            <div class="status-item status-achievement">
+                <div class="status-icon"></div>
+                <span>ACH 0/20</span>
+            </div>
+            <div class="status-item status-collection">
+                <div class="status-icon"></div>
+                <span>COL 0/40</span>
+            </div>
+        </div>
+        
+        <div class="game-controls">
+            <button class="game-button save" onclick="handleSave()">
+                <svg class="icon" viewBox="0 0 16 16">
+                    <path fill="currentColor" d="M2 2h12v12H2V2zm1 1v10h10V3H3zm2 7h6v2H5v-2z"/>
+                </svg>
+                SAVE
+            </button>
+            <button class="game-button reset" onclick="handleReset()">
+                <svg class="icon" viewBox="0 0 16 16">
+                    <path fill="currentColor" d="M8 2C4.7 2 2 4.7 2 8s2.7 6 6 6 6-2.7 6-6H13c0 2.8-2.2 5-5 5s-5-2.2-5-5 2.2-5 5-5v2l3-3-3-3v2z"/>
+                </svg>
+                RESET
+            </button>
+        </div>
+    </div>
+
+    <div class="cursor"></div>
+
+    <script>
+        // 游戏状态管理
+        const gameState = {
+            level: 0,
+            levelTitles: {
+                0: "初入江湖",
+                1: "踏破虚空",
+                2: "御风而行",
+                3: "追云逐月",
+                4: "破浪乘风",
+                5: "腾云驾雾",
+                6: "举世无双",
+                7: "纵横天下",
+                8: "傲视群雄",
+                9: "震古烁今",
+                10: "登峰造极"
+            },
+            exp: 0,
+            achievements: 0,
+            collections: 0,
+            discoveredMenus: new Set(),
+            maxLevel: 10,
+            maxExp: 999,
+            maxAchievements: 20,
+            maxCollections: 40,
+            
+            // 获取当前等级称号
+            getCurrentTitle() {
+                return this.levelTitles[this.level] || this.levelTitles[0];
+            },
+            
+            // 根据经验值更新等级
+            updateLevel() {
+                const newLevel = Math.min(Math.floor(this.exp / 100), this.maxLevel);
+                if (newLevel !== this.level) {
+                    this.level = newLevel;
+                    showAchievementNotification(`升级啦！达到 ${this.getCurrentTitle()} 境界！`);
+                }
+            }
+        };
+
+        // 从本地存储加载游戏状态
+        function loadGameState() {
+            const savedState = localStorage.getItem('pixelWorldState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                gameState.level = state.level || 0;
+                gameState.exp = state.exp;
+                gameState.achievements = state.achievements;
+                gameState.collections = state.collections;
+                gameState.discoveredMenus = new Set(state.discoveredMenus);
+                
+                // 更新状态显示
+                updateStatusBar();
+                
+                // 显示已发现的菜单文字
+                gameState.discoveredMenus.forEach(menuClass => {
+                    const menu = document.querySelector(`.${menuClass}`);
+                    if (menu) {
+                        const text = menu.querySelector('.menu-text');
+                        if (text) text.style.opacity = '1';
+                    }
+                });
+            }
+        }
+
+        // 保存游戏状态到本地存储
+        function saveGameState() {
+            const state = {
+                level: gameState.level,
+                exp: gameState.exp,
+                achievements: gameState.achievements,
+                collections: gameState.collections,
+                discoveredMenus: Array.from(gameState.discoveredMenus)
+            };
+            localStorage.setItem('pixelWorldState', JSON.stringify(state));
+        }
+
+        // 更新状态栏显示
+        function updateStatusBar() {
+            document.querySelector('.status-level span').textContent = `LV.${gameState.level} ${gameState.getCurrentTitle()}`;
+            document.querySelector('.status-exp span').textContent = `EXP ${gameState.exp}/${gameState.maxExp}`;
+            document.querySelector('.status-achievement span').textContent = `ACH ${gameState.achievements}/${gameState.maxAchievements}`;
+            document.querySelector('.status-collection span').textContent = `COL ${gameState.collections}/${gameState.maxCollections}`;
+        }
+
+        // 显示成就提示
+        function showAchievementNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20%;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(26, 26, 46, 0.9);
+                border: 2px solid #e94560;
+                padding: 15px 30px;
+                color: #fff;
+                font-size: 14px;
+                z-index: 1000;
+                animation: fadeInOut 3s ease-in-out forwards;
+            `;
+            notification.textContent = `✨ ${message}`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // 添加成就动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translate(-50%, -20px); }
+                10% { opacity: 1; transform: translate(-50%, 0); }
+                80% { opacity: 1; transform: translate(-50%, 0); }
+                100% { opacity: 0; transform: translate(-50%, -20px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 打字机效果
+        function typeWriter(text, element, speed = 100, delay = 0) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    let i = 0;
+                    function type() {
+                        if (i < text.length) {
+                            element.textContent += text.charAt(i);
+                            i++;
+                            setTimeout(type, speed);
+                        } else {
+                            resolve();
+                        }
+                    }
+                    type();
+                }, delay);
+            });
+        }
+
+        // 入场动画序列
+        async function playIntroSequence() {
+            const welcomeText = document.querySelector('.welcome-text');
+            const menuItems = document.querySelectorAll('.menu-item');
+            const statusBar = document.querySelector('.status-bar');
+            const gameControls = document.querySelector('.game-controls');
+
+            // 隐藏所有元素
+            menuItems.forEach(item => {
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.8) rotate(0deg)';
+                item.style.transition = 'all 0.5s ease';
+            });
+            statusBar.style.opacity = '0';
+            statusBar.style.transform = 'translateX(50px) rotate(5deg)';
+            statusBar.style.transition = 'all 0.5s ease';
+            gameControls.style.opacity = '0';
+            gameControls.style.transform = 'translateY(20px)';
+            gameControls.style.transition = 'all 0.5s ease';
+
+            // 显示欢迎文本
+            await typeWriter('欢迎来到像素世界...', welcomeText, 100);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await typeWriter('\n准备开始你的冒险吧！', welcomeText, 100);
+
+            // 淡出欢迎文本
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            welcomeText.style.opacity = '0';
+            welcomeText.style.transition = 'opacity 1s ease';
+
+            // 显示菜单项
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            menuItems.forEach((item, index) => {
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'scale(1) rotate(' + (item.style.transform.match(/rotate\((.*?)deg\)/)?.[1] || '0') + 'deg)';
+                }, index * 200);
+            });
+
+            // 显示状态栏和控制按钮
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            statusBar.style.opacity = '1';
+            statusBar.style.transform = 'translateX(0) rotate(5deg)';
+            gameControls.style.opacity = '1';
+            gameControls.style.transform = 'translateY(0)';
+
+            // 移除欢迎文本
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            welcomeText.remove();
+        }
+
+        // 初始加载游戏状态
+        loadGameState();
+
+        // 播放入场动画
+        playIntroSequence();
+
+        // 处理存档
+        function handleSave() {
+            saveGameState();
+            showAchievementNotification('游戏进度已保存！');
+        }
+
+        // 处理重置
+        function handleReset() {
+            if (confirm('确定要重置游戏进度吗？这将清空所有成就和收集！')) {
+                // 保存一个备份
+                const backupState = {
+                    ...gameState,
+                    discoveredMenus: Array.from(gameState.discoveredMenus)
+                };
+                
+                // 重置状态
+                gameState.level = 0;
+                gameState.exp = 0;
+                gameState.achievements = 0;
+                gameState.collections = 0;
+                gameState.discoveredMenus = new Set();
+                
+                // 更新显示
+                updateStatusBar();
+                
+                // 重置菜单文字显示
+                document.querySelectorAll('.menu-text').forEach(text => {
+                    text.style.opacity = '0';
+                });
+                
+                // 保存重置后的状态
+                saveGameState();
+                
+                showAchievementNotification('游戏进度已重置！');
+                
+                // 添加撤销选项
+                const undoNotification = document.createElement('div');
+                undoNotification.style.cssText = `
+                    position: fixed;
+                    bottom: 20%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(26, 26, 46, 0.9);
+                    border: 2px solid #4caf50;
+                    padding: 15px 30px;
+                    color: #fff;
+                    font-size: 14px;
+                    z-index: 1000;
+                `;
+                undoNotification.innerHTML = `
+                    <span>需要撤销重置吗？</span>
+                    <button class="status-button save" style="margin-left: 10px" onclick="handleUndo(this)">撤销</button>
+                `;
+                document.body.appendChild(undoNotification);
+                
+                // 5秒后移除撤销选项
+                setTimeout(() => {
+                    undoNotification.remove();
+                }, 5000);
+                
+                // 保存备份状态
+                window._backupState = backupState;
+            }
+        }
+        
+        // 处理撤销重置
+        function handleUndo(button) {
+            if (window._backupState) {
+                gameState.level = window._backupState.level;
+                gameState.exp = window._backupState.exp;
+                gameState.achievements = window._backupState.achievements;
+                gameState.collections = window._backupState.collections;
+                gameState.discoveredMenus = new Set(window._backupState.discoveredMenus);
+                
+                // 更新显示
+                updateStatusBar();
+                
+                // 恢复菜单文字显示
+                gameState.discoveredMenus.forEach(menuClass => {
+                    const menu = document.querySelector(`.${menuClass}`);
+                    if (menu) {
+                        const text = menu.querySelector('.menu-text');
+                        if (text) text.style.opacity = '1';
+                    }
+                });
+                
+                // 保存恢复的状态
+                saveGameState();
+                
+                showAchievementNotification('已撤销重置！');
+                
+                // 移除撤销按钮
+                button.parentElement.remove();
+                
+                // 清除备份
+                delete window._backupState;
+            }
+        }
+
+        // 创建浮动像素
+        function createFloatingPixels() {
+            const container = document.getElementById('floating-pixels');
+            const colors = ['#e94560', '#4caf50', '#2196f3', '#ff9800', '#9c27b0'];
+            const shapes = ['pixel-shape-1', 'pixel-shape-2', 'pixel-shape-3', 'pixel-shape-4', 'pixel-shape-5'];
+            const menuItems = document.querySelectorAll('.menu-item');
+            const menuRects = Array.from(menuItems).map(item => item.getBoundingClientRect());
+            
+            // 清除现有的像素
+            container.innerHTML = '';
+            
+            // 创建7个浮动像素
+            for (let i = 0; i < 7; i++) {
+                const pixel = document.createElement('div');
+                pixel.className = `floating-pixel ${shapes[Math.floor(Math.random() * shapes.length)]}`;
+                
+                // 随机位置（避开菜单项）
+                let validPosition = false;
+                let left, top;
+                
+                while (!validPosition) {
+                    left = Math.random() * 80 + 5; // 5% - 85%
+                    top = Math.random() * 80 + 5;  // 5% - 85%
+                    
+                    // 检查是否与菜单项重叠
+                    const pixelRect = {
+                        left: (left / 100) * window.innerWidth,
+                        top: (top / 100) * window.innerHeight,
+                        right: (left / 100) * window.innerWidth + 16,
+                        bottom: (top / 100) * window.innerHeight + 16
+                    };
+                    
+                    validPosition = !menuRects.some(menuRect => (
+                        pixelRect.left < menuRect.right &&
+                        pixelRect.right > menuRect.left &&
+                        pixelRect.top < menuRect.bottom &&
+                        pixelRect.bottom > menuRect.top
+                    ));
+                }
+                
+                pixel.style.left = left + '%';
+                pixel.style.top = top + '%';
+                
+                // 随机颜色和动画
+                pixel.style.background = colors[Math.floor(Math.random() * colors.length)];
+                pixel.style.animation = `floatAnimation ${3 + Math.random() * 4}s ease-in-out infinite`;
+                pixel.style.animationDelay = `${Math.random() * 2}s`;
+                
+                container.appendChild(pixel);
+            }
+        }
+
+        // 初始创建像素
+        createFloatingPixels();
+        
+        // 窗口大小改变时重新创建像素
+        window.addEventListener('resize', createFloatingPixels);
+
+        // 像素风鼠标跟随效果
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.querySelector('.cursor');
+            const target = e.target;
+            
+            // 检查鼠标是否在菜单项、标题或状态栏上
+            const menuItem = target.closest('.menu-item');
+            if (menuItem || 
+                target.matches('.pixel-title') || 
+                target.closest('.pixel-title') || 
+                target.closest('.status-bar') ||
+                target.closest('.game-controls')) {
+                // 检查是否是新发现的菜单
+                if (menuItem && !gameState.discoveredMenus.has(menuItem.classList[1])) {
+                    gameState.discoveredMenus.add(menuItem.classList[1]);
+                    gameState.achievements++;
+                    const text = menuItem.querySelector('.menu-text');
+                    if (text) text.style.opacity = '1';
+                    
+                    // 显示成就通知
+                    showAchievementNotification(`发现新区域：${text.textContent}！`);
+                    
+                    // 更新状态栏和保存状态
+                    updateStatusBar();
+                    saveGameState();
+                }
+                cursor.style.display = 'none';
+            } else {
+                cursor.style.display = 'block';
+                // 使用 getBoundingClientRect 获取网格的实际位置
+                const grid = document.querySelector('.pixel-grid');
+                const gridRect = grid.getBoundingClientRect();
+                const offsetX = e.clientX - gridRect.left;
+                const offsetY = e.clientY - gridRect.top;
+                
+                cursor.style.left = (Math.floor(offsetX / 20) * 20 + gridRect.left) + 'px';
+                cursor.style.top = (Math.floor(offsetY / 20) * 20 + gridRect.top) + 'px';
+            }
+        });
+    </script>
+</body>
+</html>

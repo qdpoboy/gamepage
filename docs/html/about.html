@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勇者之路 - 像素风个人站</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* 基础样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a1a;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        /* 像素化背景网格 */
+        .pixel-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                linear-gradient(rgba(26, 26, 46, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26, 26, 46, 0.5) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0;
+        }
+
+        /* 游戏场景容器 */
+        .game-scene {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            max-width: 1200px;
+            height: 80vh;
+            background: #1a1a2e;
+            border: 4px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            gap: 20px;
+        }
+
+        /* 角色立绘区域 */
+        .character-panel {
+            width: 300px;
+            background: #232338;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 角色立绘 */
+        .character-portrait {
+            width: 100%;
+            height: 300px;
+            background: #1a1a2e;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pixel-character {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            image-rendering: pixelated;
+        }
+
+        /* 属性面板 */
+        .stats-panel {
+            background: #1a1a2e;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 10px;
+        }
+
+        .stat-name {
+            color: #808080;
+            white-space: nowrap;
+        }
+
+        .stat-value {
+            color: #e94560;
+            text-align: right;
+        }
+
+        .stat-bar {
+            grid-column: 1 / -1;
+            height: 4px;
+            background: #4a4a6a;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: #e94560;
+            width: 75%;
+        }
+
+        /* 对话区域 */
+        .dialogue-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 场景展示 */
+        .scene-display {
+            flex: 1;
+            background: #0a0a1a;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scene-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .scene-background.show {
+            opacity: 0.3;
+        }
+
+        .scene-2020 {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 100%);
+        }
+
+        .scene-2021 {
+            background: 
+                radial-gradient(circle at 30% 50%, rgba(33, 150, 243, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 50%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 100%);
+        }
+
+        .scene-2022 {
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(233, 69, 96, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 30%, rgba(255, 152, 0, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 50% 70%, rgba(33, 150, 243, 0.1) 0%, transparent 40%),
+                linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 100%);
+        }
+
+        .scene-2023 {
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(233, 69, 96, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 80% 20%, rgba(255, 152, 0, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(33, 150, 243, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(76, 175, 80, 0.15) 0%, transparent 30%),
+                linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 100%);
+        }
+
+        /* 对话框 */
+        .dialogue-box {
+            height: 150px;
+            background: rgba(26, 26, 46, 0.95);
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .dialogue-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .speaker-name {
+            font-size: 12px;
+            color: #e94560;
+        }
+
+        .dialogue-content {
+            font-size: 10px;
+            line-height: 1.6;
+            color: #f1f1f1;
+        }
+
+        .dialogue-options {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .dialogue-option {
+            padding: 5px 10px;
+            background: #2a2a3e;
+            border: 2px solid #4a4a6a;
+            border-radius: 4px;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dialogue-option:hover {
+            border-color: #e94560;
+            background: #3a3a4e;
+        }
+
+        /* 成就展示 */
+        .achievements {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .achievement {
+            width: 40px;
+            height: 40px;
+            background: #232338;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .achievement:hover::after {
+            content: attr(data-title);
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1a1a2e;
+            border: 2px solid #4a4a6a;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 8px;
+            white-space: nowrap;
+            color: #f1f1f1;
+        }
+
+        .achievement.rare {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        /* 装备展示 */
+        .equipment {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .equipment-slot {
+            height: 60px;
+            background: #1a1a2e;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .equipment-name {
+            color: #2196f3;
+        }
+
+        .equipment-stat {
+            color: #808080;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            height: 32px;
+            background: #1a1a2e;
+            border: 2px solid #2196f3;
+            border-radius: 4px;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        .back-button:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .back-button .icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 像素风鼠标 */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            position: fixed;
+            pointer-events: none;
+            mix-blend-mode: difference;
+            z-index: 9999;
+        }
+
+        /* 时间轴 */
+        .timeline {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 80%;
+            background: #4a4a6a;
+            border-radius: 2px;
+        }
+
+        .timeline-node {
+            position: absolute;
+            left: -8px;
+            width: 20px;
+            height: 20px;
+            background: #232338;
+            border: 2px solid #4a4a6a;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-node:hover {
+            border-color: #e94560;
+            transform: scale(1.2);
+        }
+
+        .timeline-node.active {
+            background: #e94560;
+            border-color: #e94560;
+        }
+
+        .timeline-node::after {
+            content: attr(data-year);
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 8px;
+            color: #808080;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="pixel-grid"></div>
+
+    <a href="index.html" class="back-button">
+        <svg class="icon" viewBox="0 0 16 16">
+            <path fill="currentColor" d="M8 1L3 8l5 7V11h5V5H8V1z"/>
+        </svg>
+        BACK
+    </a>
+
+    <div class="game-scene">
+        <!-- 角色立绘区域 -->
+        <div class="character-panel">
+            <div class="character-portrait">
+                <div class="pixel-character">
+                    <style>
+                        /* 像素角色样式 */
+                        .character-head {
+                            width: 40px;
+                            height: 40px;
+                            background: #f1f1f1;
+                            border-radius: 20px;
+                            position: relative;
+                            margin-bottom: -5px;
+                        }
+                        .character-head::before,
+                        .character-head::after {
+                            content: '';
+                            position: absolute;
+                            width: 8px;
+                            height: 8px;
+                            background: #333;
+                            border-radius: 50%;
+                            top: 15px;
+                        }
+                        .character-head::before { left: 8px; }
+                        .character-head::after { right: 8px; }
+                        .character-body {
+                            width: 60px;
+                            height: 80px;
+                            background: #2196f3;
+                            border-radius: 30px 30px 0 0;
+                            position: relative;
+                        }
+                        .character-body::before,
+                        .character-body::after {
+                            content: '';
+                            position: absolute;
+                            width: 20px;
+                            height: 60px;
+                            background: #2196f3;
+                            bottom: 0;
+                        }
+                        .character-body::before {
+                            left: -15px;
+                            transform: rotate(15deg);
+                        }
+                        .character-body::after {
+                            right: -15px;
+                            transform: rotate(-15deg);
+                        }
+                    </style>
+                    <div class="character-head"></div>
+                    <div class="character-body"></div>
+                </div>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stat-row">
+                    <div class="stat-name">生命值</div>
+                    <div class="stat-value">75/100</div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" style="width: 75%"></div>
+                    </div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-name">经验值</div>
+                    <div class="stat-value">450/500</div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" style="width: 90%"></div>
+                    </div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-name">技能点</div>
+                    <div class="stat-value">15</div>
+                </div>
+            </div>
+
+            <div class="equipment">
+                <div class="equipment-slot">
+                    <div class="equipment-name">前端利剑</div>
+                    <div class="equipment-stat">攻击力 +10</div>
+                </div>
+                <div class="equipment-slot">
+                    <div class="equipment-name">设计之盾</div>
+                    <div class="equipment-stat">防御力 +8</div>
+                </div>
+                <div class="equipment-slot">
+                    <div class="equipment-name">敏捷之靴</div>
+                    <div class="equipment-stat">速度 +5</div>
+                </div>
+                <div class="equipment-slot">
+                    <div class="equipment-name">智慧项链</div>
+                    <div class="equipment-stat">智力 +12</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 对话区域 -->
+        <div class="dialogue-area">
+            <!-- 场景展示 -->
+            <div class="scene-display">
+                <div class="scene-background scene-2020"></div>
+                <div class="scene-background scene-2021"></div>
+                <div class="scene-background scene-2022"></div>
+                <div class="scene-background scene-2023"></div>
+                
+                <!-- 时间轴 -->
+                <div class="timeline">
+                    <div class="timeline-node" style="top: 20%" data-year="2020"></div>
+                    <div class="timeline-node active" style="top: 40%" data-year="2021"></div>
+                    <div class="timeline-node" style="top: 60%" data-year="2022"></div>
+                    <div class="timeline-node" style="top: 80%" data-year="2023"></div>
+                </div>
+
+                <!-- 成就展示 -->
+                <div class="achievements">
+                    <div class="achievement rare" data-title="全栈工程师">🏆</div>
+                    <div class="achievement" data-title="代码艺术家">🎨</div>
+                    <div class="achievement" data-title="问题解决者">🔧</div>
+                    <div class="achievement" data-title="团队领袖">👑</div>
+                </div>
+            </div>
+
+            <!-- 对话框 -->
+            <div class="dialogue-box">
+                <div class="dialogue-header">
+                    <div class="speaker-name">勇者</div>
+                </div>
+                <div class="dialogue-content">
+                    欢迎来到我的世界！我是一名充满热情的程序员，喜欢探索技术的无限可能。在这个充满挑战的旅程中，我不断学习和成长，期待与你分享我的故事...
+                </div>
+                <div class="dialogue-options">
+                    <div class="dialogue-option">继续</div>
+                    <div class="dialogue-option">了解更多</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cursor"></div>
+
+    <script>
+        // 像素风鼠标跟随效果
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.querySelector('.cursor');
+            const target = e.target;
+            
+            if (target.closest('.game-scene') || 
+                target.closest('.back-button')) {
+                cursor.style.display = 'none';
+            } else {
+                cursor.style.display = 'block';
+                cursor.style.left = Math.floor(e.clientX / 20) * 20 + 'px';
+                cursor.style.top = Math.floor(e.clientY / 20) * 20 + 'px';
+            }
+        });
+
+        // 故事数据
+        const storyData = {
+            2020: {
+                title: "初入江湖",
+                content: "这是我的故事开始的地方。作为一名前端开发者，我开始了解和学习各种Web技术，为之后的冒险打下基础。",
+                options: [
+                    { text: "继续", action: "next" },
+                    { text: "了解技术栈", action: "tech" }
+                ]
+            },
+            2021: {
+                title: "技术成长",
+                content: "随着对前端技术的深入学习，我开始接触更多的框架和工具。Vue.js成为了我的主要开发框架，同时也在不断探索新的技术方向。",
+                options: [
+                    { text: "继续", action: "next" },
+                    { text: "查看项目", action: "projects" }
+                ]
+            },
+            2022: {
+                title: "项目历练",
+                content: "这一年参与了多个重要项目的开发，积累了丰富的实战经验。同时也开始关注性能优化和用户体验的提升。",
+                options: [
+                    { text: "继续", action: "next" },
+                    { text: "技术细节", action: "details" }
+                ]
+            },
+            2023: {
+                title: "全栈之路",
+                content: "开始向全栈开发者迈进，学习后端技术，关注架构设计。同时也在尝试将游戏化设计引入到Web开发中。",
+                options: [
+                    { text: "继续", action: "next" },
+                    { text: "未来计划", action: "future" }
+                ]
+            }
+        };
+
+        // 切换场景和故事
+        function switchScene(year) {
+            // 隐藏所有场景
+            document.querySelectorAll('.scene-background').forEach(scene => {
+                scene.classList.remove('show');
+            });
+
+            // 显示选中年份的场景
+            document.querySelector('.scene-' + year).classList.add('show');
+
+            // 更新对话内容
+            const story = storyData[year];
+            const dialogueBox = document.querySelector('.dialogue-box');
+            dialogueBox.innerHTML = `
+                <div class="dialogue-header">
+                    <div class="speaker-name">${story.title}</div>
+                </div>
+                <div class="dialogue-content">
+                    ${story.content}
+                </div>
+                <div class="dialogue-options">
+                    ${story.options.map(option => 
+                        `<div class="dialogue-option" data-action="${option.action}">${option.text}</div>`
+                    ).join('')}
+                </div>
+            `;
+
+            // 添加选项点击事件
+            dialogueBox.querySelectorAll('.dialogue-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const action = option.getAttribute('data-action');
+                    if (action === 'next') {
+                        const nodes = Array.from(document.querySelectorAll('.timeline-node'));
+                        const currentIndex = nodes.findIndex(node => node.classList.contains('active'));
+                        if (currentIndex < nodes.length - 1) {
+                            nodes[currentIndex + 1].click();
+                        }
+                    }
+                    // TODO: 处理其他选项的点击事件
+                });
+            });
+        }
+
+        // 时间轴节点点击事件
+        document.querySelectorAll('.timeline-node').forEach(node => {
+            node.addEventListener('click', () => {
+                document.querySelectorAll('.timeline-node').forEach(n => {
+                    n.classList.remove('active');
+                });
+                node.classList.add('active');
+                
+                const year = node.getAttribute('data-year');
+                switchScene(year);
+            });
+        });
+
+        // 初始化第一个场景
+        document.querySelector('.scene-2020').classList.add('show');
+        switchScene('2020');
+
+        // 对话选项点击
+        document.querySelectorAll('.dialogue-option').forEach(option => {
+            option.addEventListener('click', () => {
+                // TODO: 处理对话选择
+            });
+        });
+    </script>
+</body>
+</html>

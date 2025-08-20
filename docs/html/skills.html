@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>能力神殿 - 像素风个人站</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* 基础样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a1a;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        /* 像素化背景网格 */
+        .pixel-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                linear-gradient(rgba(26, 26, 46, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26, 26, 46, 0.5) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0;
+        }
+
+        /* 技能神殿容器 */
+        .skill-temple {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            max-width: 1200px;
+            height: 80vh;
+            background: #1a1a2e;
+            border: 4px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            height: 40px;
+            background: #232338;
+            border-radius: 8px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .skill-points {
+            color: #4caf50;
+            position: relative;
+        }
+
+        .points-change {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            color: #4caf50;
+            font-size: 10px;
+            opacity: 0;
+            transform: translateY(0);
+            transition: all 0.5s ease;
+        }
+
+        .points-change.show {
+            opacity: 1;
+            transform: translateY(-10px);
+        }
+
+        /* 技能树区域 */
+        .skill-tree {
+            flex: 1;
+            background: #0a0a1a;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .skill-tree::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        .skill-tree::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+
+        .skill-tree::-webkit-scrollbar-thumb {
+            background: #4a4a6a;
+            border-radius: 2px;
+        }
+
+        /* SVG连线容器 */
+        .skill-connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* 技能节点网格 */
+        .skill-grid {
+            position: relative;
+            width: 600px;
+            height: 400px;
+        }
+
+        /* 技能节点 */
+        .skill-node {
+            width: 60px;
+            height: 60px;
+            background: #232338;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .skill-node:hover {
+            transform: scale(1.1);
+            border-color: #2196f3;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.3);
+            z-index: 10;
+        }
+
+        .skill-node.active {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            border-color: #2196f3;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.5);
+        }
+
+        .skill-node.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .skill-node.max-level {
+            animation: maxLevel 2s infinite;
+        }
+
+        @keyframes maxLevel {
+            0%, 100% { box-shadow: 0 0 20px rgba(33, 150, 243, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(33, 150, 243, 0.8); }
+        }
+
+        .skill-icon {
+            width: 24px;
+            height: 24px;
+            background: currentColor;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-icon::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.2) 50%, transparent 60%);
+            background-size: 200% 200%;
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skill-name {
+            font-size: 10px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .skill-level {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 24px;
+            height: 24px;
+            background: #4caf50;
+            border: 2px solid #388e3c;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* 技能升级按钮 */
+        .level-up {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background: #4caf50;
+            border: 2px solid #388e3c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .skill-node:hover .level-up {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-5px);
+        }
+
+        .level-up:hover {
+            transform: translateX(-50%) translateY(-5px) scale(1.1);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        /* 升级特效 */
+        .level-up-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .level-up-effect .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #4caf50;
+            border-radius: 50%;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            height: 32px;
+            background: #1a1a2e;
+            border: 2px solid #2196f3;
+            border-radius: 4px;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        .back-button:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .back-button .icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 技能详情面板 */
+        .skill-detail {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            padding: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .skill-detail.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4a4a6a;
+        }
+
+        .detail-icon {
+            width: 40px;
+            height: 40px;
+            background: currentColor;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .detail-title-group {
+            flex: 1;
+        }
+
+        .detail-title {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #2196f3;
+        }
+
+        .detail-level {
+            font-size: 12px;
+            color: #4caf50;
+        }
+
+        .detail-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .detail-section {
+            font-size: 10px;
+            color: #a4a4a4;
+            line-height: 1.6;
+        }
+
+        .detail-section-title {
+            color: #e94560;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .detail-requirements {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .detail-requirements li {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .detail-requirements li::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: currentColor;
+            opacity: 0.5;
+        }
+
+        .detail-requirements li.met {
+            color: #4caf50;
+        }
+
+        .detail-requirements li.unmet {
+            color: #e94560;
+        }
+
+        .detail-benefits {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .detail-benefits li {
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .detail-benefits li::before {
+            content: '+';
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+        }
+
+        .detail-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .detail-close:hover {
+            opacity: 1;
+        }
+
+        .detail-close::before,
+        .detail-close::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+        }
+
+        .detail-close::before {
+            transform: rotate(45deg);
+        }
+
+        .detail-close::after {
+            transform: rotate(-45deg);
+        }
+
+        /* 像素风鼠标 */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            position: fixed;
+            pointer-events: none;
+            mix-blend-mode: difference;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="pixel-grid"></div>
+
+    <a href="index.html" class="back-button">
+        <svg class="icon" viewBox="0 0 16 16">
+            <path fill="currentColor" d="M8 1L3 8l5 7V11h5V5H8V1z"/>
+        </svg>
+        BACK
+    </a>
+
+    <div class="skill-temple">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="skill-points">
+                技能点: 100
+                <span class="points-change">-1</span>
+            </div>
+            <div class="total-level">总等级: 15/100</div>
+        </div>
+
+        <!-- 技能树区域 -->
+        <div class="skill-tree">
+            <!-- SVG连线 -->
+            <svg class="skill-connections" width="100%" height="100%">
+                <!-- 连线将通过JS动态生成 -->
+            </svg>
+
+            <!-- 技能节点网格 -->
+            <div class="skill-grid">
+                <!-- 技能节点将通过JS动态生成 -->
+            </div>
+
+            <!-- 技能详情面板 -->
+            <div class="skill-detail">
+                <!-- 详情内容将通过JS动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="cursor"></div>
+
+    <script>
+        // 技能树数据
+        const skillTreeData = {
+            html: {
+                id: 'html',
+                name: 'HTML5',
+                color: '#e44d26',
+                x: 270,
+                y: 50,
+                level: 1,
+                maxLevel: 10,
+                requires: [],
+                unlocks: ['css', 'javascript'],
+                description: '精通HTML5标准和语义化标签的使用，能够构建清晰、易维护的页面结构。熟练运用Canvas、SVG等高级特性。'
+            },
+            css: {
+                id: 'css',
+                name: 'CSS3',
+                color: '#264de4',
+                x: 170,
+                y: 150,
+                level: 0,
+                maxLevel: 10,
+                requires: [{id: 'html', level: 3}],
+                unlocks: ['sass', 'animation'],
+                description: '掌握现代CSS技术，包括Flexbox、Grid、动画等，能够实现各种复杂的页面布局和交互效果。'
+            },
+            javascript: {
+                id: 'javascript',
+                name: 'JavaScript',
+                color: '#f7df1e',
+                x: 370,
+                y: 150,
+                level: 0,
+                maxLevel: 10,
+                requires: [{id: 'html', level: 3}],
+                unlocks: ['typescript', 'vue'],
+                description: '熟练运用现代JavaScript特性，包括ES6+语法、异步编程、模块化等。掌握DOM操作和事件处理。'
+            },
+            sass: {
+                id: 'sass',
+                name: 'Sass',
+                color: '#cc6699',
+                x: 120,
+                y: 250,
+                level: 0,
+                maxLevel: 10,
+                requires: [{id: 'css', level: 5}],
+                unlocks: [],
+                description: '使用Sass预处理器提升CSS开发效率，掌握变量、混合、函数等高级特性，实现样式的模块化和复用。'
+            },
+            animation: {
+                id: 'animation',
+                name: 'Animation',
+                color: '#2196f3',
+                x: 220,
+                y: 250,
+                level: 0,
+                maxLevel: 10,
+                requires: [{id: 'css', level: 5}],
+                unlocks: [],
+                description: '精通CSS动画和过渡效果，能够创建流畅的用户界面动画，掌握关键帧动画和3D变换技术。'
+            },
+            typescript: {
+                id: 'typescript',
+                name: 'TypeScript',
+                color: '#007acc',
+                x: 320,
+                y: 250,
+                level: 0,
+                maxLevel: 10,
+                requires: [{id: 'javascript', level: 5}],
+                unlocks: [],
+                description: '使用TypeScript增强代码的类型安全性，掌握接口、泛型、装饰器等高级特性，提升代码的可维护性。'
+            },
+            vue: {
+                id: 'vue',
+                name: 'Vue.js',
+                color: '#42b883',
+                x: 420,
+                y: 250,
+                level: 0,
+                maxLevel: 10,
+                requires: [{id: 'javascript', level: 5}],
+                unlocks: [],
+                description: '使用Vue.js构建响应式用户界面，掌握组件化开发、状态管理、路由等核心概念，创建高性能的单页应用。'
+            }
+        };
+
+        // 初始化技能树
+        function initSkillTree() {
+            const grid = document.querySelector('.skill-grid');
+            const svg = document.querySelector('.skill-connections');
+
+            // 清空现有内容
+            grid.innerHTML = '';
+            svg.innerHTML = '';
+
+            // 创建连线
+            Object.values(skillTreeData).forEach(skill => {
+                skill.unlocks.forEach(unlockId => {
+                    const target = skillTreeData[unlockId];
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', skill.x + 30);
+                    line.setAttribute('y1', skill.y + 30);
+                    line.setAttribute('x2', target.x + 30);
+                    line.setAttribute('y2', target.y + 30);
+                    line.setAttribute('stroke', '#2196f3');
+                    line.setAttribute('stroke-width', '2');
+                    line.setAttribute('data-from', skill.id);
+                    line.setAttribute('data-to', unlockId);
+                    line.style.opacity = isSkillUnlocked(target) ? '1' : '0.3';
+                    svg.appendChild(line);
+                });
+            });
+
+            // 创建技能节点
+            Object.values(skillTreeData).forEach(skill => {
+                const node = document.createElement('div');
+                node.className = `skill-node${isSkillUnlocked(skill) ? '' : ' locked'}${skill.level === skill.maxLevel ? ' max-level' : ''}`;
+                node.style.left = `${skill.x}px`;
+                node.style.top = `${skill.y}px`;
+                node.innerHTML = `
+                    <div class="skill-icon" style="color: ${skill.color};"></div>
+                    <div class="skill-name">${skill.name}</div>
+                    <div class="skill-level">${skill.level}</div>
+                    ${isSkillUnlocked(skill) && skill.level < skill.maxLevel ? '<div class="level-up">+</div>' : ''}
+                `;
+                node.setAttribute('data-skill', skill.id);
+                grid.appendChild(node);
+
+                // 添加点击事件
+                node.addEventListener('click', (e) => {
+                    // 如果点击的是升级按钮，不显示详情面板
+                    if (e.target.classList.contains('level-up')) return;
+
+                    const skillId = node.getAttribute('data-skill');
+                    const detail = document.querySelector('.skill-detail');
+                    const skillData = skillTreeData[skillId];
+
+                    if (!skillData) return;
+
+                    // 更新详情面板内容
+                    detail.innerHTML = `
+                        <div class="detail-close"></div>
+                        <div class="detail-header">
+                            <div class="detail-icon" style="color: ${skillData.color}"></div>
+                            <div class="detail-title-group">
+                                <div class="detail-title">${skillData.name}</div>
+                                <div class="detail-level">Level ${skillData.level} / ${skillData.maxLevel}</div>
+                            </div>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-section">
+                                <div class="detail-section-title">技能描述</div>
+                                <div class="detail-desc">${skillData.description || '暂无描述'}</div>
+                            </div>
+                            <div class="detail-section">
+                                <div class="detail-section-title">前置要求</div>
+                                <ul class="detail-requirements">
+                                    ${skillData.requires.map(req => {
+                                        const reqSkill = skillTreeData[req.id];
+                                        const met = reqSkill.level >= req.level;
+                                        return `<li class="${met ? 'met' : 'unmet'}">${reqSkill.name} 等级 ${req.level}</li>`;
+                                    }).join('') || '<li class="met">基础技能，无需前置要求</li>'}
+                                </ul>
+                            </div>
+                            <div class="detail-section">
+                                <div class="detail-section-title">升级收益</div>
+                                <ul class="detail-benefits">
+                                    <li>提升技能熟练度</li>
+                                    <li>解锁新的技能点</li>
+                                    ${skillData.unlocks.length > 0 ? `<li>解锁进阶技能：${skillData.unlocks.map(id => skillTreeData[id].name).join('、')}</li>` : ''}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+
+                    // 显示详情面板
+                    detail.classList.add('show');
+
+                    // 添加关闭按钮事件
+                    detail.querySelector('.detail-close').addEventListener('click', () => {
+                        detail.classList.remove('show');
+                    });
+                });
+
+                // 添加升级事件
+                if (isSkillUnlocked(skill) && skill.level < skill.maxLevel) {
+                    const levelUpBtn = node.querySelector('.level-up');
+                    levelUpBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        upgradeSkill(node);
+                    });
+                }
+            });
+        }
+
+        // 检查技能是否可以解锁
+        function isSkillUnlocked(skill) {
+            if (skill.requires.length === 0) return true;
+            return skill.requires.every(req => {
+                const requiredSkill = skillTreeData[req.id];
+                return requiredSkill.level >= req.level;
+            });
+        }
+
+        // 升级技能
+        function upgradeSkill(node) {
+            const skillId = node.getAttribute('data-skill');
+            const skillPoints = document.querySelector('.skill-points');
+            const currentPoints = parseInt(skillPoints.textContent.split(': ')[1]);
+            
+            if (currentPoints > 0) {
+                const skill = skillTreeData[skillId];
+                if (skill.level < skill.maxLevel) {
+                    // 更新技能点
+                    skillPoints.textContent = `技能点: ${currentPoints - 1}`;
+                    showPointsChange();
+
+                    // 更新技能等级
+                    skill.level++;
+                    node.querySelector('.skill-level').textContent = skill.level;
+
+                    // 更新总等级
+                    const totalLevel = document.querySelector('.total-level');
+                    const current = parseInt(totalLevel.textContent.split(': ')[1].split('/')[0]);
+                    totalLevel.textContent = `总等级: ${current + 1}/100`;
+
+                    // 显示升级特效
+                    showLevelUpEffect(node);
+
+                    // 检查是否达到最大等级
+                    if (skill.level === skill.maxLevel) {
+                        node.classList.add('max-level');
+                        const levelUpBtn = node.querySelector('.level-up');
+                        if (levelUpBtn) levelUpBtn.remove();
+                    }
+
+                    // 更新连线状态
+                    updateConnections();
+
+                    // 更新解锁状态
+                    updateUnlockedSkills();
+
+                    // 如果详情面板打开，更新详情
+                    const detail = document.querySelector('.skill-detail');
+                    if (detail.classList.contains('show')) {
+                        const levelText = detail.querySelector('.detail-level');
+                        if (levelText) {
+                            levelText.textContent = `Level ${skill.level} / ${skill.maxLevel}`;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 更新连线状态
+        function updateConnections() {
+            const lines = document.querySelectorAll('.skill-connections line');
+            lines.forEach(line => {
+                const targetId = line.getAttribute('data-to');
+                const target = skillTreeData[targetId];
+                line.style.opacity = isSkillUnlocked(target) ? '1' : '0.3';
+            });
+        }
+
+        // 更新解锁状态
+        function updateUnlockedSkills() {
+            Object.values(skillTreeData).forEach(skill => {
+                const node = document.querySelector(`[data-skill="${skill.id}"]`);
+                if (isSkillUnlocked(skill)) {
+                    node.classList.remove('locked');
+                    if (skill.level < skill.maxLevel && !node.querySelector('.level-up')) {
+                        const levelUpBtn = document.createElement('div');
+                        levelUpBtn.className = 'level-up';
+                        levelUpBtn.textContent = '+';
+                        levelUpBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            upgradeSkill(skill.id);
+                        });
+                        node.appendChild(levelUpBtn);
+                    }
+                }
+            });
+        }
+
+        // 显示技能点变化动画
+        function showPointsChange() {
+            const pointsChange = document.querySelector('.points-change');
+            pointsChange.classList.add('show');
+            setTimeout(() => {
+                pointsChange.classList.remove('show');
+            }, 500);
+        }
+
+        // 显示升级特效
+        function showLevelUpEffect(node) {
+            const effect = document.createElement('div');
+            effect.className = 'level-up-effect';
+            effect.style.left = node.offsetLeft + 'px';
+            effect.style.top = node.offsetTop + 'px';
+
+            // 创建粒子
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const angle = (i / 20) * Math.PI * 2;
+                const velocity = 2 + Math.random() * 2;
+                const size = 2 + Math.random() * 2;
+                
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                
+                // 设置动画
+                particle.animate([
+                    {
+                        transform: `translate(${50}px, ${50}px)`,
+                        opacity: 1
+                    },
+                    {
+                        transform: `translate(${50 + Math.cos(angle) * 50 * velocity}px, ${50 + Math.sin(angle) * 50 * velocity}px)`,
+                        opacity: 0
+                    }
+                ], {
+                    duration: 1000,
+                    easing: 'ease-out'
+                });
+
+                effect.appendChild(particle);
+            }
+
+            document.querySelector('.skill-tree').appendChild(effect);
+            setTimeout(() => effect.remove(), 1000);
+        }
+
+        // 像素风鼠标跟随效果
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.querySelector('.cursor');
+            const target = e.target;
+            
+            if (target.closest('.skill-temple') || 
+                target.closest('.back-button')) {
+                cursor.style.display = 'none';
+            } else {
+                cursor.style.display = 'block';
+                cursor.style.left = Math.floor(e.clientX / 20) * 20 + 'px';
+                cursor.style.top = Math.floor(e.clientY / 20) * 20 + 'px';
+            }
+        });
+
+        // 初始化技能树
+        initSkillTree();
+    </script>
+</body>
+</html>
