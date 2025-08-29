@@ -3,5 +3,6 @@
 
 <template>
   <main>
+    <div>这里是GamePage</div>
   </main>
 </template>
