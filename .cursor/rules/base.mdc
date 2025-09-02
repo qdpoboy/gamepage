@@ -1,0 +1,9 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+## 基本规范
+- 不要主动优化无关的代码
+- 使用2个空格缩进
+- less sass文件尽量不要重复，能共用的就共用
