@@ -1,0 +1,19 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Vue3 开发强制规范
+
+## 强制使用 Composition API
+所有新组件必须使用 `<script setup>` 语法，禁止使用 Options API，以保证代码的组织性和可复用性。
+
+## 强制使用 Pinia
+状态管理必须使用 Pinia，禁止使用 Vuex 或其他方案。Store的定义要模块化，职责清晰。
+
+## 强制封装 Axios
+所有HTTP请求必须通过封装好的 `utils/request.js` 发出，禁止在组件中直接调用 `axios`。
+
+## 命名约定
+- 组件文件名使用大驼峰命名法 (PascalCase)，例如 `UserProfile.vue`。
+- hooks函数使用 `use` 开头，例如 `useUserInfo.js`。
